@@ -1,73 +1,74 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+# NestJS로 회원가입, 로그인 구현
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+로그인 구현에는 몇가지 필요한 도구들과 디자인 패턴이 있다. 먼저 그것들을 살펴보자.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+# Passport
 
-## Description
+passport는 사용자 인증을 관리하기 위해 존재하는 라이브러리다. 로그인, 로그아웃, 세션관리 등을 간편하게 만들어준다. passport는 여러 전략으로 다양한 인증방식을 재공하는데 nestjs에서는 `@nestjs/passport` 
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+모듈을 사용한다.
 
-## Installation
+# Strategy
 
-```bash
-$ npm install
-```
+strategy는 디자인 패턴 중 하나로 동일한 문제를 해결할 여러 알고리즘이 존재할 때, 이 알고리즘들을 캡슐화하고 이들을 상호 교환할 수 있다. 이 패턴을 사용하면 알고리즘을 클라이언트로부터 독립적으로 둘 수 있다.
 
-## Running the app
+전략 패턴은 세 가지 구성 요소로 이루어진다.
 
-```bash
-# development
-$ npm run start
+## 1. Context
 
-# watch mode
-$ npm run start:dev
+전략을 사용하는 클래스이다. 전략이 실행되는 환경을 제공한다.
 
-# production mode
-$ npm run start:prod
-```
+## 2. strategy
 
-## Test
+context에 사용되는 알고리즘을 캡슐화 함. 다양한 전략이 있을 수 있고 이것들은 다 같은 인터페이스여야 한다.
 
-```bash
-# unit tests
-$ npm run test
+## 3. Concrete strategy
 
-# e2e tests
-$ npm run test:e2e
+strategy 인터페이스를 구현하는 클래스. 실제 알고리즘을 구현한다.
 
-# test coverage
-$ npm run test:cov
-```
+passport에서 strategy란 인증 방식을 의미하며 다양한 인증방식이 존재한다. 이중 사용하고자 하는 전략을 선택하여 구현하고 passport에 등록한다.
 
-## Support
+# JWT
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+Json객체를 이용한 토큰 기반 인증 방식. 특정 사용자 정보나 권한을 가지고 있는 토큰으로, 이 토큰으로 유효한 사용자인지를 판별한다.
 
-## Stay in touch
+jwt는 세 가지 파트로 이루어져 있다.
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+## 1. Header
 
-## License
+어떤 종류의 토큰인지, 어떤 알고리즘을 사용하여 서명되었는지 등의 정보를 담고있다.
 
-Nest is [MIT licensed](LICENSE).
+## 2. Payload
+
+jwt에서 실제 중요한 데이터를 담고있는 부분이다. 사용자의 id나 권한 정보 등을 담고있다.
+
+## 3. Signature
+
+jwt의 무결성을 보장하기 위한 장치. 서명은 암호화된 헤더, 암호화된 페이로드, 비밀키를 조합하여 생성된다.
+
+jwt가 전달되는 동안은 서명이 변하지 않도록 유지되어야 하고 서명을 검증하는 과정을 거쳐 jwt의 유효성을 확인할 수 있다.
+
+## JWT와 세션
+
+로그인을 할 때 jwt 방식이 아닌 세션 방식도 사용할 수 있다. jwt와 세션의 차이점은 상태 관리에 있다.
+
+세션은 서버의 메모리에 저장을 해서 사용하는 방식이지만 토큰은 그 유효성만을 확인할 뿐 따로 관리를 하지 않는다.
+
+## Refresh Token
+
+JWT 방식에는 refresh Token이 존재한다. 이 토큰은 jwt로그인 방식의 보안성을 높이는 역할을 해준다.
+
+access token을 발급받은 순간부터 그것을 서버에서 삭제할 수는 없고 유효기간이 다 될때까지 기다려야 한다.
+
+이때 토큰이 밖으로 유출되었는데 토큰의 유효기간이 많이 남았다면 보안에 치명적인 문제점이 생기게 된다.
+
+이 때 refresh token이 중요한 역할을 해주게 된다.
+
+access token의 유효기간을 아주 짧게 하고 refresh token의 유효기간을 길게 만들어 access token을 계속 재발급 시키는 것이다. 이렇게 되면 access token이 유출되어도 유효기간이 짧기 때문에 비교적 안전해진다.
+
+# 구현 목록
+
+1. id, password 로 요청시 access token과 refresh 토큰을 반환한다.
+2. access token을 포함한 리소스 응답 요청에 리소스를 반환한다.
+3. access token 만료시 Unauthorized exception을 반환한다.
+4. refresh token으로 refresh 요청 시 새로운 access token을 반환한다.
